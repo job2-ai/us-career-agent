@@ -18,6 +18,15 @@ const PORTALS_TEMPLATE = join(CODE_ROOT, 'templates', 'portals.example.yml');
 const DEFAULT_MAX_AGE_DAYS = 45;
 const CONTACT_KEYS = ['phone', 'linkedin', 'portfolio_url', 'github', 'twitter'];
 const NOT_A_PLACE = /^(remote|hybrid|anywhere|on-?site)$/i;
+// AGENTS.md Step 3's entry-level test: under 2 years of experience, or a
+// target archetype whose level is Entry, Junior or Graduate. A level that names
+// an internship or a student job counts too, and also wants those titles.
+const ENTRY_LEVEL = /\b(entry|junior|graduate|new grad)\b/i;
+const INTERN_LEVEL = /\b(intern|interns|internship|student|werkstudent|praktikum|praktikant)\b/i;
+// Shipped title_filter.negative entries (folded) that reject the titles such
+// a search is for. Thesis, apprenticeship and dual-study entries stay.
+const ENTRY_LEVEL_NEGATIVES = ['junior'];
+const INTERN_LEVEL_NEGATIVES = ['word:intern', 'word:interns', 'internship', 'werkstudent', 'praktikant', 'praktikum'];
 
 const USAGE = `
   onboard-write.mjs: write config/profile.yml and portals.yml from onboarding answers
@@ -277,14 +286,32 @@ function blockAfter(lines, header, nextHeader) {
   return [start, next];
 }
 
+/**
+ * Shipped negatives (folded) an entry-level candidate's search should not
+ * carry: "Junior" for an entry-level candidate, and the internship and student
+ * entries too when an archetype's level names one. Empty for everyone else.
+ */
+export function entryLevelNegatives(a) {
+  const levels = (a.archetypes || []).map((x) => x.level || '');
+  const intern = levels.some((l) => INTERN_LEVEL.test(l));
+  const years = a.years_of_experience;
+  const entry = intern || (typeof years === 'number' && years < 2) || levels.some((l) => ENTRY_LEVEL.test(l));
+  if (!entry) return [];
+  return intern ? [...ENTRY_LEVEL_NEGATIVES, ...INTERN_LEVEL_NEGATIVES] : [...ENTRY_LEVEL_NEGATIVES];
+}
+
 export function buildPortals(template, a) {
   const p = a.portals;
   const lines = template.split('\n');
   const shippedNegatives = loadYaml(template).title_filter.negative.map((n) => foldTitle(String(n)));
 
   // Drop shipped negatives that would reject a user positive under the same
-  // word:/stem:/substring rules the scanner uses.
+  // word:/stem:/substring rules the scanner uses, and the junior/intern ones an
+  // entry-level search is looking for, unless the user named them again.
+  const userNegatives = new Set(p.negative.map((n) => foldTitle(n)));
+  const levelDrops = entryLevelNegatives(a).filter((n) => !userNegatives.has(n));
   const conflicting = new Set(shippedNegatives.filter((negative) => {
+    if (levelDrops.includes(negative)) return true;
     const matches = compileKeyword(negative);
     return p.positive.some((positive) => matches(foldTitle(positive)));
   }));

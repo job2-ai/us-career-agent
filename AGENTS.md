@@ -295,7 +295,7 @@ JSON
 ```
 
 - `portals.positive` is the title keywords. Default to the target roles and their common variants.
-- `portals.negative` is the titles they ruled out. The writer adds them to `title_filter.negative` and never replaces the list, so the template's junior, intern and German student entries (Werkstudent, Praktikant) stay.
+- `portals.negative` is the titles they ruled out. The writer adds them to `title_filter.negative` and never replaces the list, so the template's junior, intern and German student entries (Werkstudent, Praktikant) stay. The exception is an entry-level candidate (`candidate.years_of_experience` under 2, or an archetype `level` of Entry, Junior or Graduate): the writer drops the shipped "Junior" entry, and the intern and student entries too when an archetype's `level` names an internship or a student job. Pass `candidate.years_of_experience` and the archetypes so it can tell. A title they rule out themselves in `portals.negative` is always kept.
 - `countries` and `cities` become a `location_filter` allow-list, so the first scan does not fill the pipeline with roles in places they ruled out. Countries go under both `always_allow` and `allow`, and cities under `allow` only. Leave both empty when they want anywhere.
   - When they name only countries ("remote in the US", "anywhere in Canada"), pass those countries. For the United States, `always_allow` also admits "City, ST" locations. For other countries, add the main cities to `cities` too, since a posting may name only the city.
   - When they name cities, pass the cities and leave `countries` empty, since a country in `always_allow` admits every city in it.
