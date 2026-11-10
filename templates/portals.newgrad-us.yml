@@ -1,0 +1,47 @@
+# US new-grad preset for onboard-write.mjs (portals.preset: newgrad-us).
+#
+# Not a portals.yml. onboard-write.mjs layers it over templates/portals.example.yml
+# when it writes portals.yml, so every tracked company and comment there still
+# comes from that one template. Onboarding picks it on its own for an
+# entry-level candidate (under 2 years, or an Entry / Junior / Graduate level)
+# whose location.country is the United States; `portals.preset: none` turns it
+# off and `portals.preset: newgrad-us` turns it on for anyone.
+#
+# Every key is read by onboard-write.mjs only:
+#   positive        added after the candidate's own title keywords
+#   drop_negative   shipped title_filter.negative entries left out of portals.yml,
+#                   unless the candidate names one again in portals.negative
+#   seniority_boost replaces the template's Senior / Staff / Principal list
+
+positive:
+  - "New Grad"
+  - "Entry Level"
+  - "Entry-Level"
+  - "University Graduate"
+  - "Recent Graduate"
+  - "Early Career"
+  # word: so it matches "Software Engineer I" and "Software Engineer I, Backend"
+  # but not "Software Engineer II" / "III" or "Software Engineer Intern".
+  - "word:Software Engineer I"
+  - "Associate Software Engineer"
+
+drop_negative:
+  # Junior titles are what a new grad applies to.
+  - "Junior"
+  # US new-grad searches often run alongside internship and co-op searches in
+  # the final year, so they are not excluded here. Add "Internship" to
+  # portals.negative to bring the exclusion back.
+  - "word:Intern"
+  - "word:Interns"
+  - "Internship"
+  # "Java " is one of the template's tech-stack negatives. Java is one of the
+  # most common languages in US new-grad and university-recruiting postings.
+  - "Java "
+
+seniority_boost:
+  - "New Grad"
+  - "Entry Level"
+  - "Early Career"
+  - "University Graduate"
+  - "Recent Graduate"
+  - "Associate"

@@ -27,6 +27,10 @@ const INTERN_LEVEL = /\b(intern|interns|internship|student|werkstudent|praktikum
 // a search is for. Thesis, apprenticeship and dual-study entries stay.
 const ENTRY_LEVEL_NEGATIVES = ['junior'];
 const INTERN_LEVEL_NEGATIVES = ['word:intern', 'word:interns', 'internship', 'werkstudent', 'praktikant', 'praktikum'];
+// Portal presets layered over the template (portals.preset). newgrad-us is
+// picked on its own for an entry-level candidate whose country is the US.
+const PRESETS = { 'newgrad-us': join(CODE_ROOT, 'templates', 'portals.newgrad-us.yml') };
+const US = /^(united states( of america)?|usa?|u\.s\.(a\.)?)$/i;
 
 const USAGE = `
   onboard-write.mjs: write config/profile.yml and portals.yml from onboarding answers
@@ -50,7 +54,8 @@ const USAGE = `
       "countries": ["United States"],
       "cities": ["Berlin"],
       "max_posting_age_days": 45,
-      "experience_filter"?: { "stretch_years"?: 1, "action"?: "label" | "drop" }
+      "experience_filter"?: { "stretch_years"?: 1, "action"?: "label" | "drop" },
+      "preset"?: "newgrad-us" | "none"
     }
   }
 `;
@@ -87,6 +92,28 @@ function required(value, field) {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text) throw new AnswerError(`missing answer: ${field}`);
   return text;
+}
+
+/**
+ * AGENTS.md Step 3's entry-level test, on normalized answers.
+ * @returns {false | 'entry' | 'intern'}
+ */
+export function entryLevel(a) {
+  const levels = (a.archetypes || []).map((x) => x.level || '');
+  if (levels.some((l) => INTERN_LEVEL.test(l))) return 'intern';
+  const years = a.years_of_experience;
+  return (typeof years === 'number' && years < 2) || levels.some((l) => ENTRY_LEVEL.test(l)) ? 'entry' : false;
+}
+
+function loadPreset(name) {
+  const doc = loadYaml(readFileSync(PRESETS[name], 'utf8'));
+  return {
+    name,
+    positive: list(doc.positive),
+    // Untrimmed: the template's "Java " carries its trailing space.
+    drop_negative: (doc.drop_negative || []).map((n) => foldTitle(String(n))),
+    seniority_boost: list(doc.seniority_boost),
+  };
 }
 
 export function normalizeAnswers(raw) {
@@ -152,6 +179,21 @@ export function normalizeAnswers(raw) {
     const title = positive.find((p) => matches(foldTitle(p)));
     if (title) throw new AnswerError(`portals.negative "${n}" rejects the title "${title}"`);
   }
+  const country = required(location.country, 'location.country');
+  const presetName = portals.preset ?? (entryLevel({ years_of_experience: years, archetypes }) && US.test(country) ? 'newgrad-us' : 'none');
+  if (presetName !== 'none' && !Object.hasOwn(PRESETS, presetName)) {
+    throw new AnswerError(`portals.preset must be ${[...Object.keys(PRESETS), 'none'].join(', ')}, got "${presetName}"`);
+  }
+  const preset = presetName === 'none' ? null : loadPreset(presetName);
+  // The preset's keywords go after the candidate's own. One the candidate's
+  // negatives reject, or one they already have, is left out.
+  const negativeMatchers = negative.map((n) => compileKeyword(foldTitle(n)));
+  const seen = new Set(positive.map((x) => foldTitle(x)));
+  for (const x of preset?.positive ?? []) {
+    if (seen.has(foldTitle(x)) || negativeMatchers.some((m) => m(foldTitle(x)))) continue;
+    seen.add(foldTitle(x));
+    positive.push(x);
+  }
   return {
     candidate: {
       full_name: required(candidate.full_name, 'candidate.full_name'),
@@ -168,7 +210,7 @@ export function normalizeAnswers(raw) {
       location_flexibility: compensation.location_flexibility?.trim() || '',
     },
     location: {
-      country: required(location.country, 'location.country'),
+      country,
       city: location.city?.trim() || '',
       timezone: required(location.timezone, 'location.timezone'),
       visa_status: location.visa_status?.trim() || '',
@@ -195,6 +237,7 @@ export function normalizeAnswers(raw) {
       cities: list(portals.cities),
       max_posting_age_days: age,
       experience_filter: experienceFilter,
+      preset,
     },
   };
 }
@@ -292,12 +335,9 @@ function blockAfter(lines, header, nextHeader) {
  * entries too when an archetype's level names one. Empty for everyone else.
  */
 export function entryLevelNegatives(a) {
-  const levels = (a.archetypes || []).map((x) => x.level || '');
-  const intern = levels.some((l) => INTERN_LEVEL.test(l));
-  const years = a.years_of_experience;
-  const entry = intern || (typeof years === 'number' && years < 2) || levels.some((l) => ENTRY_LEVEL.test(l));
-  if (!entry) return [];
-  return intern ? [...ENTRY_LEVEL_NEGATIVES, ...INTERN_LEVEL_NEGATIVES] : [...ENTRY_LEVEL_NEGATIVES];
+  const level = entryLevel(a);
+  if (!level) return [];
+  return level === 'intern' ? [...ENTRY_LEVEL_NEGATIVES, ...INTERN_LEVEL_NEGATIVES] : [...ENTRY_LEVEL_NEGATIVES];
 }
 
 export function buildPortals(template, a) {
@@ -309,7 +349,7 @@ export function buildPortals(template, a) {
   // word:/stem:/substring rules the scanner uses, and the junior/intern ones an
   // entry-level search is looking for, unless the user named them again.
   const userNegatives = new Set(p.negative.map((n) => foldTitle(n)));
-  const levelDrops = entryLevelNegatives(a).filter((n) => !userNegatives.has(n));
+  const levelDrops = [...entryLevelNegatives(a), ...(p.preset?.drop_negative ?? [])].filter((n) => !userNegatives.has(n));
   const conflicting = new Set(shippedNegatives.filter((negative) => {
     if (levelDrops.includes(negative)) return true;
     const matches = compileKeyword(negative);
@@ -328,6 +368,19 @@ export function buildPortals(template, a) {
   while (lines[negInsert - 1].trim() === '') negInsert--;
   const extra = [...new Set(p.negative)].filter((n) => !shippedNegatives.includes(foldTitle(n)));
   lines.splice(negInsert, 0, ...extra.map((n) => `    - ${q(n)}`));
+
+  if (p.preset) {
+    // The preset's seniority_boost replaces the template's items; the
+    // comment under the key stays.
+    const at = lines.findIndex((l) => l === '  seniority_boost:');
+    if (at < 0) throw new Error('template has no "  seniority_boost:" block');
+    let first = at + 1;
+    while (/^\s+#/.test(lines[first])) first++;
+    let end = first;
+    while (end < lines.length && lines[end].startsWith('    - ')) end++;
+    lines.splice(first, end - first, `    # From the ${p.preset.name} preset (templates/portals.${p.preset.name}.yml).`,
+      ...p.preset.seniority_boost.map((s) => `    - ${q(s)}`));
+  }
 
   // Replace active positive entries only; keep the template's keyword guidance.
   const [posStart, posEnd] = blockAfter(lines, '  positive:', '  negative:');
@@ -378,6 +431,7 @@ function checkPortals(text, templateText, a) {
   const t = loadYaml(templateText);
   const ok = JSON.stringify(c.title_filter.positive) === JSON.stringify(a.portals.positive)
     && c.tracked_companies.length === t.tracked_companies.length
+    && (!a.portals.preset || JSON.stringify(c.title_filter.seniority_boost) === JSON.stringify(a.portals.preset.seniority_boost))
     && (a.portals.max_posting_age_days > 0 ? c.max_posting_age_days === a.portals.max_posting_age_days : c.max_posting_age_days === undefined)
     && (a.portals.experience_filter
       ? c.experience_filter?.stretch_years === a.portals.experience_filter.stretch_years && c.experience_filter?.action === a.portals.experience_filter.action
