@@ -162,14 +162,16 @@ export function normalizeAnswers(raw) {
     if (action !== 'drop' && action !== 'label') throw new AnswerError('portals.experience_filter.action must be drop or label');
     experienceFilter = { stretch_years: stretch, action };
   }
-  // #6325: an optional CV page budget, asked for during onboarding when the
-  // candidate is early-career. Absent keys stay commented out in the profile.
+  // #6325: an optional CV page budget. An entry-level candidate gets one
+  // strict page without being asked (US new-grad resumes are one page); a
+  // cv answer still wins. Otherwise absent keys stay commented out.
   const cv = a.cv && typeof a.cv === 'object' ? a.cv : {};
-  const maxPages = cv.max_pages ?? null;
+  const entry = entryLevel({ years_of_experience: years, archetypes });
+  const maxPages = cv.max_pages ?? (entry ? 1 : null);
   if (maxPages !== null && (!Number.isInteger(maxPages) || maxPages < 1)) {
     throw new AnswerError('cv.max_pages must be a whole number of pages, 1 or more');
   }
-  const strictPages = cv.strict_pages ?? null;
+  const strictPages = cv.strict_pages ?? (entry && maxPages === 1 ? true : null);
   if (strictPages !== null && typeof strictPages !== 'boolean') {
     throw new AnswerError('cv.strict_pages must be true or false');
   }
@@ -180,7 +182,7 @@ export function normalizeAnswers(raw) {
     if (title) throw new AnswerError(`portals.negative "${n}" rejects the title "${title}"`);
   }
   const country = required(location.country, 'location.country');
-  const presetName = portals.preset ?? (entryLevel({ years_of_experience: years, archetypes }) && US.test(country) ? 'newgrad-us' : 'none');
+  const presetName = portals.preset ?? (entry && US.test(country) ? 'newgrad-us' : 'none');
   if (presetName !== 'none' && !Object.hasOwn(PRESETS, presetName)) {
     throw new AnswerError(`portals.preset must be ${[...Object.keys(PRESETS), 'none'].join(', ')}, got "${presetName}"`);
   }
