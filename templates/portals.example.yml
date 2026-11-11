@@ -477,6 +477,15 @@
 #   negative:
 #     - "no sponsorship"
 #     - "unable to sponsor"
+#     # US: citizenship, permanent residence or a clearance is required
+#     - "must be a u.s. citizen"
+#     - "green card holders only"
+#     - "active security clearance"
+#
+# Leave `negative` out to keep the full default list, which also covers US
+# wording ("must be a U.S. citizen", "no sponsorship now or in the future",
+# "unable to sponsor", security-clearance requirements, "green card holders
+# only"). A list here replaces it.
 
 # -- Experience filter (optional, off unless set) --
 # Reads the years of experience each NEW posting's JD asks for, after every

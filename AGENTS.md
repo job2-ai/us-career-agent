@@ -264,6 +264,7 @@ If `config/profile.yml` is missing, ask:
 > - What roles are you targeting? (e.g., 'Senior Backend Engineer', 'AI Product Manager')
 > - Your salary target range and its currency
 > - How many years of professional experience do you have? (optional: the scanner can then skip postings whose stated minimum is out of reach, and how far you'd stretch above it)
+> - (US only) What is your US work authorization: US citizen, green card holder, F-1 OPT, F-1 STEM OPT, H-1B, or something else?
 > - How much do you want to spend on model usage per evaluation? Three options:
 >   - **economy** — cheapest and fastest, good for scanning lots of offers quickly
 >   - **standard** — balanced cost and quality (default if you're not sure)
@@ -285,7 +286,7 @@ node onboard-write.mjs --answers - <<'JSON'
   "candidate": { "full_name": "...", "email": "...", "location": "City, Region", "years_of_experience": 6 },
   "target_roles": ["..."],
   "compensation": { "target_range": "...", "currency": "USD", "minimum": "..." },
-  "location": { "country": "...", "city": "...", "timezone": "..." },
+  "location": { "country": "...", "city": "...", "timezone": "...", "work_authorization": "f1_opt" },
   "spend_tier": "standard",
   "archetypes": [{ "name": "...", "level": "...", "fit": "primary" }],
   "narrative": { "headline": "...", "superpowers": ["..."], "proof_points": [{ "name": "...", "hero_metric": "..." }] },
@@ -304,6 +305,7 @@ JSON
   - A posting labeled only "Remote" (no country) will not match a US `always_allow` / `allow` list. Tell the candidate that limitation during onboarding; do not add "Remote" as an unconditional country match. Titles that themselves signal remote work can still match on the title filter.
 - `candidate.years_of_experience` is optional. When they give it, also ask whether the scanner should check postings whose JD states a minimum above it, by how much they would stretch (default 1 year), and whether to mark those rows (the default) or drop them. A yes becomes `portals.experience_filter: { "stretch_years": 1 }` (add `"action": "drop"` only if they want those rows removed: a wrong drop silently costs a real job, a wrong label costs one glance). It reads each new posting's JD, marks (or with `drop`, removes) only a clearly stated minimum above the band, and keeps unclear or unread ones unmarked; it is independent of `skip_tiers`, which reads the title.
 - When `candidate.years_of_experience` is under 2 (or, when they gave none, `cv.md` shows under 2 years of work: pass that figure as `years_of_experience`), or the archetypes they target are entry level (`level` Entry, Junior or Graduate), do not ask about CV length: the writer sets `cv.max_pages: 1` and `cv.strict_pages: true`, so a CV that runs over fails rather than warns. Tell them every CV will be one page. Pass `"cv"` only when they ask for something else: `{ "max_pages": 2 }` for two pages, or `{ "strict_pages": false }` to warn instead of fail. Anyone else gets no page budget unless they ask for one.
+- `location.work_authorization` takes `us_citizen`, `green_card`, `f1_opt`, `stem_opt`, `h1b` or `other`; leave it out outside the US or when they did not say. The writer fills `visa_status` from it, adds the United States to `authorized_in` for a citizen or green card holder, and sets `needs_sponsorship: true` for OPT, STEM OPT and H-1B (an explicit `needs_sponsorship` still wins). A candidate who needs sponsorship in the country they search in also gets `visa_filter: { enabled: true }` in `portals.yml`, which drops postings that say they will not sponsor or require US citizenship, a green card or a security clearance; postings that say nothing stay. In the US the writer also turns on the `h1b-sponsor` plugin in `config/plugins.yml` (unless that file already sets it) and prints `"plugins_enabled": ["h1b-sponsor"]`. When it also prints `"next": ["node plugins/h1b-sponsor/install-h1b-index.mjs"]`, tell them to run that command once: it downloads the ~8 MiB DOL sponsor index, and nothing downloads it for them. `node plugins.mjs list` shows the plugin; setting `enabled: false` for it in `config/plugins.yml` turns it off.
 - `max_posting_age_days` defaults to 45. Tell them it also hides long-open roles on a company's own board. Set 0 only when they ask for older postings.
 - Contact fields they did not give are blanked, so the example person never reaches a CV.
 - Existing files are kept. Pass `--force` only when the user asks to redo setup. `node onboard-write.mjs --help` shows every field.

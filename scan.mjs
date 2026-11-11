@@ -1291,6 +1291,45 @@ export const DEFAULT_VISA_NEGATIVE = [
   // (Relocation wording is deliberately excluded: relocation != sponsorship.)
   'citizens and permanent residents only',
   'permanent residents only',
+  // US refusals. "No sponsorship now or in the future" is already caught by
+  // 'no sponsorship' above.
+  'will not sponsor',
+  'unable to provide sponsorship',
+  'not able to provide sponsorship',
+  'without the need for sponsorship',
+  'without the need for visa sponsorship',
+  'without requiring sponsorship',
+  'without requiring visa sponsorship',
+  'must not require sponsorship',
+  'must not require visa sponsorship',
+  // US citizenship / permanent residence required: an F-1, OPT or H-1B
+  // candidate cannot take these whatever the sponsorship wording.
+  'must be a u.s. citizen',
+  'must be a us citizen',
+  'must be a united states citizen',
+  'u.s. citizenship is required',
+  'us citizenship is required',
+  'u.s. citizenship required',
+  'us citizenship required',
+  'u.s. citizens only',
+  'us citizens only',
+  'citizen or green card holder',
+  'citizens or green card holders',
+  'green card holders only',
+  'must be a u.s. person',
+  'must be a us person',
+  // Security clearance, which in the US requires citizenship. Phrased as a
+  // requirement on purpose: a bare 'security clearance' would also reject
+  // "no security clearance required".
+  'active security clearance',
+  'active secret clearance',
+  'ts/sci',
+  'must have a security clearance',
+  'must hold a security clearance',
+  'must possess a security clearance',
+  'ability to obtain a security clearance',
+  'able to obtain a security clearance',
+  'ability to obtain and maintain a security clearance',
 ];
 
 export function buildVisaFilter(visaFilter) {

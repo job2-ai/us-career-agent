@@ -11,6 +11,8 @@ import { compileKeyword, foldTitle } from './title-keywords.mjs';
 import { getCareerOpsRoot, getProfilePath } from './path-resolver.mjs';
 import { writeFileAtomic } from './tracker-utils.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
+import { parsePluginConfig, setPluginEnabled } from './plugins.mjs';
+import { indexPath as h1bIndexPath } from './plugins/h1b-sponsor/lib/index.mjs';
 
 const CODE_ROOT = dirname(fileURLToPath(import.meta.url));
 const PROFILE_TEMPLATE = join(CODE_ROOT, 'config', 'profile.example.yml');
@@ -31,6 +33,19 @@ const INTERN_LEVEL_NEGATIVES = ['word:intern', 'word:interns', 'internship', 'we
 // picked on its own for an entry-level candidate whose country is the US.
 const PRESETS = { 'newgrad-us': join(CODE_ROOT, 'templates', 'portals.newgrad-us.yml') };
 const US = /^(united states( of america)?|usa?|u\.s\.(a\.)?)$/i;
+// US work authorization (location.work_authorization). A student on OPT or
+// STEM OPT can work today but needs H-1B sponsorship to stay, so for the
+// evaluation's work-authorization check the US is not in authorized_in.
+const WORK_AUTH = {
+  us_citizen: { visa_status: 'US citizen', authorized: true },
+  green_card: { visa_status: 'US permanent resident (green card)', authorized: true },
+  f1_opt: { visa_status: 'F-1 OPT; will need H-1B sponsorship', authorized: false },
+  stem_opt: { visa_status: 'F-1 STEM OPT; will need H-1B sponsorship', authorized: false },
+  h1b: { visa_status: 'H-1B; needs a sponsor for the transfer', authorized: false },
+  other: null,
+};
+const H1B_PLUGIN = 'h1b-sponsor';
+const H1B_INSTALL = 'node plugins/h1b-sponsor/install-h1b-index.mjs';
 
 const USAGE = `
   onboard-write.mjs: write config/profile.yml and portals.yml from onboarding answers
@@ -43,7 +58,8 @@ const USAGE = `
     "candidate": { "full_name", "email", "location", "phone"?, "linkedin"?, "portfolio_url"?, "github"?, "twitter"?, "years_of_experience"? },
     "target_roles": ["..."],
     "compensation": { "target_range", "currency"?, "minimum"?, "location_flexibility"? },
-    "location": { "country", "timezone", "city"?, "visa_status"?, "authorized_in"?, "needs_sponsorship"? },
+    "location": { "country", "timezone", "city"?, "visa_status"?, "authorized_in"?, "needs_sponsorship"?,
+                  "work_authorization"?: "us_citizen" | "green_card" | "f1_opt" | "stem_opt" | "h1b" | "other" },
     "spend_tier": "economy" | "standard" | "premium",
     "cv"?: { "max_pages"?: 1, "strict_pages"?: true },
     "archetypes": [{ "name", "level", "fit": "primary" | "secondary" | "adjacent" }]?,
@@ -182,6 +198,15 @@ export function normalizeAnswers(raw) {
     if (title) throw new AnswerError(`portals.negative "${n}" rejects the title "${title}"`);
   }
   const country = required(location.country, 'location.country');
+  const workAuth = location.work_authorization ?? null;
+  if (workAuth !== null && !Object.hasOwn(WORK_AUTH, workAuth)) {
+    throw new AnswerError(`location.work_authorization must be ${Object.keys(WORK_AUTH).join(', ')}, got "${workAuth}"`);
+  }
+  const auth = workAuth ? WORK_AUTH[workAuth] : null;
+  const authorizedIn = list(location.authorized_in);
+  if (auth?.authorized && !authorizedIn.some((c) => US.test(c))) authorizedIn.push('United States');
+  // An explicit answer wins over the one the work authorization implies.
+  const needsSponsorship = typeof location.needs_sponsorship === 'boolean' ? location.needs_sponsorship : Boolean(auth && !auth.authorized);
   const presetName = portals.preset ?? (entry && US.test(country) ? 'newgrad-us' : 'none');
   if (presetName !== 'none' && !Object.hasOwn(PRESETS, presetName)) {
     throw new AnswerError(`portals.preset must be ${[...Object.keys(PRESETS), 'none'].join(', ')}, got "${presetName}"`);
@@ -215,10 +240,12 @@ export function normalizeAnswers(raw) {
       country,
       city: location.city?.trim() || '',
       timezone: required(location.timezone, 'location.timezone'),
-      visa_status: location.visa_status?.trim() || '',
-      authorized_in: list(location.authorized_in),
-      needs_sponsorship: location.needs_sponsorship === true,
+      visa_status: location.visa_status?.trim() || auth?.visa_status || '',
+      authorized_in: authorizedIn,
+      needs_sponsorship: needsSponsorship,
     },
+    // Needs sponsorship to work in the country they live and search in.
+    sponsorship_here: needsSponsorship && !authorizedIn.some((c) => foldTitle(c) === foldTitle(country) || (US.test(c) && US.test(country))),
     spend_tier: tier,
     cv: { max_pages: maxPages, strict_pages: strictPages },
     archetypes,
@@ -406,6 +433,14 @@ export function buildPortals(template, a) {
       `  stretch_years: ${p.experience_filter.stretch_years}`, `  action: ${p.experience_filter.action}`, '');
   }
 
+  if (a.sponsorship_here) {
+    // Drops postings that say they will not sponsor (scan.mjs's default
+    // vocabulary); postings that say nothing stay.
+    const at = lines.findIndex((l) => l.startsWith('# -- Experience filter'));
+    if (at < 0) throw new Error('template has no experience-filter section to anchor visa_filter');
+    lines.splice(at, 0, '# Set by onboarding: you need sponsorship where you search.', 'visa_filter:', '  enabled: true', '');
+  }
+
   if (p.countries.length || p.cities.length) {
     const at = lines.findIndex((l) => l.startsWith('# -- Country-eligibility filter'));
     if (at < 0) throw new Error('template has no country-eligibility section to anchor location_filter');
@@ -437,8 +472,22 @@ function checkPortals(text, templateText, a) {
     && (a.portals.max_posting_age_days > 0 ? c.max_posting_age_days === a.portals.max_posting_age_days : c.max_posting_age_days === undefined)
     && (a.portals.experience_filter
       ? c.experience_filter?.stretch_years === a.portals.experience_filter.stretch_years && c.experience_filter?.action === a.portals.experience_filter.action
-      : c.experience_filter === undefined);
+      : c.experience_filter === undefined)
+    && (a.sponsorship_here ? c.visa_filter?.enabled === true : c.visa_filter === undefined);
   if (!ok) throw new Error('portals.yml did not read back as written');
+}
+
+/**
+ * Turn the h1b-sponsor plugin on in config/plugins.yml for a US candidate who
+ * needs sponsorship. An entry already there, on or off, is the user's and is
+ * left alone. Returns whether this run enabled it.
+ */
+export function enableSponsorPlugin(root) {
+  const file = join(root, 'config', 'plugins.yml');
+  const cfg = parsePluginConfig(existsSync(file) ? readFileSync(file, 'utf8') : null, file);
+  if (cfg.plugins?.[H1B_PLUGIN] && typeof cfg.plugins[H1B_PLUGIN].enabled === 'boolean') return false;
+  setPluginEnabled(root, H1B_PLUGIN, true);
+  return true;
 }
 
 function readAnswers(source) {
@@ -492,10 +541,23 @@ export function main(argv = process.argv.slice(2)) {
     mkdirSync(dirname(t.path), { recursive: true });
     writeFileAtomic(t.path, texts[i]);
   });
-  console.log(JSON.stringify({
+  const out = {
     written: planned.filter((t) => !t.keep).map((t) => t.rel),
     kept: planned.filter((t) => t.keep).map((t) => t.rel),
-  }));
+  };
+  // The plugin reads a local index of DOL filings (about 8 MiB). Installing it
+  // is the user's one network step, so it is printed, never run from here.
+  const profileWritten = !planned.find((t) => t.key === 'profile').keep;
+  if (profileWritten && answers.sponsorship_here && US.test(answers.location.country) && enableSponsorPlugin(root)) {
+    out.plugins_enabled = [H1B_PLUGIN];
+    let installed = false;
+    try { installed = existsSync(h1bIndexPath()); } catch { /* a blank H1B_INDEX_PATH: not installed */ }
+    if (!installed) {
+      out.next = [H1B_INSTALL];
+      console.error(`onboard-write: enabled ${H1B_PLUGIN}. Install its sponsor index once with: ${H1B_INSTALL}`);
+    }
+  }
+  console.log(JSON.stringify(out));
   return 0;
 }
 
