@@ -17,6 +17,15 @@
 
 The scores are still a model's judgment and can vary between runs and models; the cap only keeps a posting you cannot take from looking like a good bet.
 
+## Requirements
+
+- Node.js 22.13 or newer, and git.
+- An AI coding CLI to run it in, signed in. This version has no model of its own:
+  - **Claude Code**: a Claude Pro or Max subscription, or an `ANTHROPIC_API_KEY`.
+  - **Codex**: a ChatGPT sign-in, or an `OPENAI_API_KEY`.
+  - With an API key in your environment, the CLI bills per token instead of using your subscription.
+- On a budget: OpenCode with OpenRouter's free models (rate-limited), or a local model through Ollama (no API cost, needs a capable machine). See [docs/RUNNING_ON_A_BUDGET.md](docs/RUNNING_ON_A_BUDGET.md).
+
 ## Install
 
 ```bash

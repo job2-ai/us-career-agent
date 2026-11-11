@@ -17,6 +17,15 @@
 
 注意：分数仍然是 AI 的判断，不同次、不同模型跑出来可能不一样；2.5 分上限只是避免你根本不符合资格的职位看起来很值得投。
 
+## 需要准备
+
+- Node.js 22.13 以上，以及 git。
+- 一个已登录的 AI 命令行工具。这个版本本身不含 AI 模型：
+  - **Claude Code**：Claude Pro 或 Max 订阅，或 `ANTHROPIC_API_KEY`。
+  - **Codex**：用 ChatGPT 登录，或 `OPENAI_API_KEY`。
+  - 环境变量里有 API key 时，会按用量计费，不会走你的订阅。
+- 想省钱：用 OpenCode 接 OpenRouter 的免费模型（有次数限制），或通过 Ollama 用本地模型（不用付 API 费用，但需要够好的电脑）。详见 [docs/RUNNING_ON_A_BUDGET.md](docs/RUNNING_ON_A_BUDGET.md)。
+
 ## 安装
 
 ```bash
