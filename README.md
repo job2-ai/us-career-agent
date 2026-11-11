@@ -2,7 +2,7 @@
 
 **A US-tuned version of [career-ops](https://github.com/career-ops-hq/career-ops)** (MIT, by Santiago Fernández de Valderrama), changed for job seekers in the United States, new grads and international students in particular. It is not affiliated with or endorsed by career-ops. Everything below the line is career-ops' own README.
 
-美国求职适配版：基于 career-ops（MIT）开源改编，对 new grad 和国际学生更友好。
+美国求职适配版：基于 career-ops（MIT）开源改编，对 new grad 和国际学生更友好。→ [简体中文说明](README.cn.md) · [繁體中文說明](README.zh-TW.md)
 
 ## What is different
 

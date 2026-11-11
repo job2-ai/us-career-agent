@@ -1,3 +1,44 @@
+# us-career-agent（美國求職適配版）
+
+**基於 [career-ops](https://github.com/career-ops-hq/career-ops) 開源改編**（MIT 授權，原作者 Santiago Fernández de Valderrama），專門為在美國找工作的人調整，對 new grad 和國際學生特別友善。本專案與 career-ops 官方無關，也未經其背書。分隔線以下是 career-ops 原本的繁體中文 README。
+
+[English](README.md) · [简体中文](README.cn.md) · 繁體中文
+
+## 跟原版有什麼不同
+
+| | career-ops 原版 | us-career-agent |
+|---|---|---|
+| 職缺過濾 | 預設排除標題有 Junior、Intern、Internship、Java 的職缺，就算你是 new grad 也一樣 | 如果你是新人（工作經驗不到 2 年，或目標職級是 Entry / Junior / Graduate），保留這些職缺，並自動加上 New Grad、Entry Level、Early Career、Software Engineer I 等關鍵字 |
+| 履歷頁數 | 預設最多兩頁，除非你要求一頁 | 新人預設嚴格一頁（仍然可以改成兩頁） |
+| 美國簽證 | H-1B 查詢是要手動開啟的外掛，也沒有美國的擔保相關過濾 | 設定時會問你的工作身分（美國公民、綠卡、F-1 OPT、STEM OPT、H-1B）。如果你在美國需要擔保，會自動開啟簽證過濾和 H-1B 查詢，並過濾「must be a U.S. citizen」「will not sponsor」、需要安全許可等字眼 |
+| 評分 | AI 綜合判斷，沒有上限 | 職缺要求的年資明顯高於你、明說不提供你需要的擔保、或畢業時間不符時，最高只給 2.5 分，並寫出原因 |
+| 更新 | 來自 career-ops | 來自本專案，更新時不會蓋掉以上改動 |
+
+注意：分數仍然是 AI 的判斷，不同次、不同模型跑出來可能不一樣；2.5 分上限只是避免你根本不符資格的職缺看起來很值得投。
+
+## 安裝
+
+```bash
+git clone https://github.com/job2-ai/us-career-agent.git
+cd us-career-agent
+npm install
+claude        # 或 codex / opencode / gemini，第一次啟動會用聊天的方式帶你完成設定
+```
+
+請不要使用下方原版 README 裡的 `npx @santifer/career-ops init`，那會安裝 career-ops 原版，而不是這個版本。
+
+如果設定過程開啟了 H-1B 查詢，請先安裝一次它的資料索引（約 8 MB，來自美國勞工部公開的申報資料）：
+
+```bash
+node plugins/h1b-sponsor/install-h1b-index.mjs
+```
+
+---
+
+由 [Job2](https://job2.ai) 製作：免費幫你的履歷對照職缺打分。
+
+---
+
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/wordmark-dark.svg"><img src="docs/wordmark-light.svg" alt="career-ops" width="250" height="56"></picture></p>
 
 <p align="center">開源的 AI 求職代理人。</p>
