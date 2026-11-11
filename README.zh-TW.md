@@ -45,7 +45,7 @@ node plugins/h1b-sponsor/install-h1b-index.mjs
 
 ---
 
-由 [Job2](https://job2.ai) 製作：免費幫你的履歷對照職缺打分。
+由 [Job2](https://job2.ai) 製作：免費幫你的履歷對照職缺打分。更多求職工具實測：[Instagram @job2.ai](https://www.instagram.com/job2.ai)。
 
 ---
 

@@ -45,7 +45,7 @@ node plugins/h1b-sponsor/install-h1b-index.mjs
 
 ---
 
-Made by [Job2](https://job2.ai), which scores your resume against a job for free.
+Made by [Job2](https://job2.ai), which scores your resume against a job for free. Hands-on reviews of job-search tools: [@job2.ai on Instagram](https://www.instagram.com/job2.ai).
 
 ---
 
