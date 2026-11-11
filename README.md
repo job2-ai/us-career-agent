@@ -382,6 +382,7 @@ All of them share one router, `.agents/skills/career-ops/SKILL.md`, and the same
 | [`ofertas`](modes/ofertas.md) | Compare and rank several offers |
 | [`deep`](modes/deep.md) | Deep research prompt about the company |
 | [`eu-swe`](modes/regional/eu-swe.md) | Calibrate a European software-engineering application before CV, apply or interview |
+| [`us-swe`](modes/regional/us-swe.md) | Calibrate a US software-engineering application (new grad, OPT, sponsorship) before CV, apply or interview |
 
 **Apply**
 

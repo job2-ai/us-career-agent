@@ -3515,7 +3515,7 @@ const expectedModes = [
   'ofertas.md', 'pipeline.md', 'project.md', 'tracker.md', 'training.md',
   'interview.md', 'latex.md', 'latex-tex.md', 'email.md', 'add.md', 'titles.md',
   'expand.md', 'discover.md',
-  'regional/eu-swe.md',
+  'regional/eu-swe.md', 'regional/us-swe.md',
 ];
 
 for (const mode of expectedModes) {

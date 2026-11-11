@@ -381,6 +381,7 @@ npm i -g @santifer/career-ops
 | [`ofertas`](modes/ofertas.md) | 比較並排序多個職缺 |
 | [`deep`](modes/deep.md) | 針對企業的深度調查提示詞 |
 | [`eu-swe`](modes/regional/eu-swe.md) | 在準備履歷、申請或面試之前，校準一份歐洲軟體工程職缺的申請 |
+| [`us-swe`](modes/regional/us-swe.md) | 在準備履歷、申請或面試之前，校準一份美國軟體工程職缺的申請（new grad、OPT、簽證擔保） |
 
 **申請**
 

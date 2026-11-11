@@ -381,6 +381,7 @@ npm i -g @santifer/career-ops
 | [`ofertas`](modes/ofertas.md) | 比较并排序多个职位 |
 | [`deep`](modes/deep.md) | 针对公司的深度调研提示词 |
 | [`eu-swe`](modes/regional/eu-swe.md) | 在准备简历、申请或面试之前，校准一份欧洲软件工程岗位的申请 |
+| [`us-swe`](modes/regional/us-swe.md) | 在准备简历、申请或面试之前，校准一份美国软件工程岗位的申请（new grad、OPT、签证担保） |
 
 **申请**
 
