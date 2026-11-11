@@ -1,3 +1,44 @@
+# us-career-agent
+
+**A US-tuned version of [career-ops](https://github.com/career-ops-hq/career-ops)** (MIT, by Santiago Fernández de Valderrama), changed for job seekers in the United States, new grads and international students in particular. It is not affiliated with or endorsed by career-ops. Everything below the line is career-ops' own README.
+
+美国求职适配版：基于 career-ops（MIT）开源改编，对 new grad 和国际学生更友好。
+
+## What is different
+
+| | career-ops | us-career-agent |
+|---|---|---|
+| Title filter | Excludes "Junior", "Intern", "Internship" and "Java " by default, even for a new grad | For an entry-level candidate (under 2 years, or an Entry/Junior/Graduate target), keeps them and adds New Grad, Entry Level, Early Career, Software Engineer I |
+| CV length | Up to 2 pages unless you ask for 1 | One page, enforced, for an entry-level candidate (you can still choose 2) |
+| US visa | H-1B lookup is an opt-in plugin; no US sponsorship phrases | Onboarding asks your work authorization (citizen, green card, F-1 OPT, STEM OPT, H-1B). If you need sponsorship in the US, the visa filter and the H-1B sponsor lookup are on, and US phrases ("must be a U.S. citizen", "will not sponsor", clearance) are filtered |
+| Score | Holistic, no caps | Capped at 2.5/5, with the reason, when the posting asks for clearly more years than you have, refuses sponsorship you need, or has a graduation window that excludes you |
+| Updates | From career-ops | From this repo, so an update keeps these changes |
+
+The scores are still a model's judgment and can vary between runs and models; the cap only keeps a posting you cannot take from looking like a good bet.
+
+## Install
+
+```bash
+git clone https://github.com/job2-ai/us-career-agent.git
+cd us-career-agent
+npm install
+claude        # or codex / opencode / gemini: the first run walks you through setup in chat
+```
+
+Do not use `npx @santifer/career-ops init` from the README below: it installs the original career-ops, not this version.
+
+If onboarding turns on the H-1B sponsor lookup, install its index once (about 8 MB, from the US Department of Labor's disclosure data):
+
+```bash
+node plugins/h1b-sponsor/install-h1b-index.mjs
+```
+
+---
+
+Made by [Job2](https://job2.ai), which scores your resume against a job for free.
+
+---
+
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/wordmark-dark.svg"><img src="docs/wordmark-light.svg" alt="career-ops" width="250" height="56"></picture></p>
 
 <p align="center">The open-source AI job search agent.</p>

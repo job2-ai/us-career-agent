@@ -128,17 +128,19 @@ function isLegacyReexec() {
   }
 }
 
-const CANONICAL_REPO = 'https://github.com/career-ops-hq/career-ops.git';
+// us-career-agent: updates come from this repo, which merges career-ops releases with its US changes kept. An update
+// straight from career-ops would replace those changes, since they live in system files.
+const CANONICAL_REPO = 'https://github.com/job2-ai/us-career-agent.git';
 // Local snapshot of a withheld update's index, including preserved files.
 // A ref stays out of git status and contributor branches; trust it only while
 // its content matches the queried paths (see stagedUpdateBaseline).
 export const STAGED_UPDATE_REF = 'refs/career-ops/staged-update';
-const RAW_VERSION_URL = 'https://raw.githubusercontent.com/career-ops-hq/career-ops/main/VERSION';
-const RELEASES_API = 'https://api.github.com/repos/career-ops-hq/career-ops/releases/latest';
+const RAW_VERSION_URL = 'https://raw.githubusercontent.com/job2-ai/us-career-agent/main/VERSION';
+const RELEASES_API = 'https://api.github.com/repos/job2-ai/us-career-agent/releases/latest';
 // The authoritative answer to "what commit does this upstream ref name?".
 // check() has always read it for main; apply() now reads it for the ref it is
 // installing, so the tree is checked against the ref it claims to be (#3052).
-const UPSTREAM_REF_API = 'https://api.github.com/repos/career-ops-hq/career-ops/git/ref';
+const UPSTREAM_REF_API = 'https://api.github.com/repos/job2-ai/us-career-agent/git/ref';
 
 // Matches a semver, with or without a leading `v` and an optional
 // Release Please component prefix (e.g. `career-ops-v1.9.0` → `1.9.0`).
