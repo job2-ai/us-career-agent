@@ -11,7 +11,8 @@
 | 职位过滤 | 默认排除标题有 Junior、Intern、Internship、Java 的职位，就算你是 new grad 也一样 | 如果你是新人（工作经验不到 2 年，或目标职级是 Entry / Junior / Graduate），保留这些职位，并自动加上 New Grad、Entry Level、Early Career、Software Engineer I 等关键词 |
 | 简历页数 | 默认最多两页，除非你要求一页 | 新人默认严格一页（仍然可以改成两页） |
 | 美国签证 | H-1B 查询是要手动打开的插件，也没有美国的担保相关过滤 | 设定时会问你的工作身份（美国公民、绿卡、F-1 OPT、STEM OPT、H-1B）。如果你在美国需要担保，会自动打开签证过滤和 H-1B 查询，并过滤「must be a U.S. citizen」「will not sponsor」、需要安全许可等字眼 |
-| 评分 | AI 综合判断，没有上限 | 职位要求的年资明显高于你、明说不提供你需要的担保、或毕业时间不符时，最高只给 2.5 分，并写出原因 |
+| OPT / STEM OPT | 没有特别处理 | F-1 OPT 或 STEM OPT 的人，签证过滤会再排除明说不收 F-1、OPT、CPT，或写明没有加入 E-Verify 的职位（STEM OPT 规定雇主必须加入 E-Verify）。评估报告会提醒 STEM OPT 的人到 [E-Verify 官网](https://www.e-verify.gov/e-verify-employer-search)查这家公司，因为官方没有可下载的名单 |
+| 评分 | AI 综合判断，没有上限 | 职位要求的年资明显高于你、明说不提供你需要的担保、你在 OPT 但职位明说不收 OPT、或毕业时间不符时，最高只给 2.5 分，并写出原因 |
 | 更新 | 来自 career-ops | 来自本项目，更新时不会盖掉以上改动 |
 
 注意：分数仍然是 AI 的判断，不同次、不同模型跑出来可能不一样；2.5 分上限只是避免你根本不符合资格的职位看起来很值得投。

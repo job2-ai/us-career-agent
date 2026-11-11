@@ -246,6 +246,8 @@ export function normalizeAnswers(raw) {
     },
     // Needs sponsorship to work in the country they live and search in.
     sponsorship_here: needsSponsorship && !authorizedIn.some((c) => foldTitle(c) === foldTitle(country) || (US.test(c) && US.test(country))),
+    // An F-1 student on OPT or STEM OPT: the visa filter also drops postings that turn away F-1, OPT or CPT.
+    f1_opt: workAuth === 'f1_opt' || workAuth === 'stem_opt',
     spend_tier: tier,
     cv: { max_pages: maxPages, strict_pages: strictPages },
     archetypes,
@@ -438,7 +440,8 @@ export function buildPortals(template, a) {
     // vocabulary); postings that say nothing stay.
     const at = lines.findIndex((l) => l.startsWith('# -- Experience filter'));
     if (at < 0) throw new Error('template has no experience-filter section to anchor visa_filter');
-    lines.splice(at, 0, '# Set by onboarding: you need sponsorship where you search.', 'visa_filter:', '  enabled: true', '');
+    lines.splice(at, 0, '# Set by onboarding: you need sponsorship where you search.', 'visa_filter:', '  enabled: true',
+      ...(a.f1_opt ? ['  f1_opt: true   # also drops postings that turn away F-1, OPT or CPT, or are not in E-Verify'] : []), '');
   }
 
   if (p.countries.length || p.cities.length) {
@@ -473,7 +476,7 @@ function checkPortals(text, templateText, a) {
     && (a.portals.experience_filter
       ? c.experience_filter?.stretch_years === a.portals.experience_filter.stretch_years && c.experience_filter?.action === a.portals.experience_filter.action
       : c.experience_filter === undefined)
-    && (a.sponsorship_here ? c.visa_filter?.enabled === true : c.visa_filter === undefined);
+    && (a.sponsorship_here ? c.visa_filter?.enabled === true && (c.visa_filter.f1_opt === true) === Boolean(a.f1_opt) : c.visa_filter === undefined);
   if (!ok) throw new Error('portals.yml did not read back as written');
 }
 

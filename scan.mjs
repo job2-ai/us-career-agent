@@ -1332,6 +1332,45 @@ export const DEFAULT_VISA_NEGATIVE = [
   'ability to obtain and maintain a security clearance',
 ];
 
+// For an F-1 student on OPT or STEM OPT (`visa_filter.f1_opt: true`, set by
+// onboarding): postings that turn away F-1, OPT or CPT, or say the employer is
+// not in E-Verify, which STEM OPT requires (USCIS: a STEM OPT employer "must be
+// enrolled in E-Verify"). Matched as whole words, so "no opt" does not match
+// "no option" and nothing here touches an H-1B or a citizen candidate.
+export const DEFAULT_OPT_NEGATIVE = [
+  'not eligible for opt',
+  'not eligible for cpt',
+  'not eligible for opt/cpt',
+  'opt/cpt not accepted',
+  'opt and cpt are not accepted',
+  'opt or cpt candidates will not be considered',
+  'opt/cpt candidates will not be considered',
+  'cannot accept opt',
+  'do not accept opt',
+  'does not accept opt',
+  'unable to accept opt',
+  'no opt',
+  'no cpt',
+  'no opt/cpt',
+  'no f-1',
+  'no f1',
+  'f-1 students are not eligible',
+  'f-1 visa holders are not eligible',
+  'f1 visa holders are not eligible',
+  'unable to support stem opt',
+  'cannot support stem opt',
+  'does not support stem opt',
+  'not able to support stem opt',
+  'not enrolled in e-verify',
+  'does not participate in e-verify',
+  'do not participate in e-verify',
+  'not an e-verify employer',
+];
+
+function wholePhrase(phrase) {
+  return new RegExp(`(?<![a-z0-9])${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z0-9])`);
+}
+
 export function buildVisaFilter(visaFilter) {
   if (!visaFilter || visaFilter.enabled === false) return () => true;
   const positive = visaFilter.positive != null
@@ -1341,12 +1380,14 @@ export function buildVisaFilter(visaFilter) {
     ? normalizeKeywordList(visaFilter.negative)
     : DEFAULT_VISA_NEGATIVE.slice();
   const requireMention = visaFilter.require_mention === true;
+  const optNegative = visaFilter.f1_opt === true ? DEFAULT_OPT_NEGATIVE.map(wholePhrase) : [];
 
   return (description) => {
     const hasText = typeof description === 'string' && description.trim() !== '';
     if (!hasText) return !requireMention;
     const lower = description.toLowerCase();
     if (negative.length > 0 && negative.some(k => lower.includes(k))) return false;
+    if (optNegative.some(re => re.test(lower))) return false;
     if (!requireMention) return true;
     if (positive.length === 0) return true;
     return positive.some(k => lower.includes(k));

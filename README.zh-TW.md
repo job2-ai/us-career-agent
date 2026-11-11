@@ -11,7 +11,8 @@
 | 職缺過濾 | 預設排除標題有 Junior、Intern、Internship、Java 的職缺，就算你是 new grad 也一樣 | 如果你是新人（工作經驗不到 2 年，或目標職級是 Entry / Junior / Graduate），保留這些職缺，並自動加上 New Grad、Entry Level、Early Career、Software Engineer I 等關鍵字 |
 | 履歷頁數 | 預設最多兩頁，除非你要求一頁 | 新人預設嚴格一頁（仍然可以改成兩頁） |
 | 美國簽證 | H-1B 查詢是要手動開啟的外掛，也沒有美國的擔保相關過濾 | 設定時會問你的工作身分（美國公民、綠卡、F-1 OPT、STEM OPT、H-1B）。如果你在美國需要擔保，會自動開啟簽證過濾和 H-1B 查詢，並過濾「must be a U.S. citizen」「will not sponsor」、需要安全許可等字眼 |
-| 評分 | AI 綜合判斷，沒有上限 | 職缺要求的年資明顯高於你、明說不提供你需要的擔保、或畢業時間不符時，最高只給 2.5 分，並寫出原因 |
+| OPT / STEM OPT | 沒有特別處理 | F-1 OPT 或 STEM OPT 的人，簽證過濾會再排除明說不收 F-1、OPT、CPT，或寫明沒有加入 E-Verify 的職缺（STEM OPT 規定雇主必須加入 E-Verify）。評估報告會提醒 STEM OPT 的人到 [E-Verify 官網](https://www.e-verify.gov/e-verify-employer-search)查這家公司，因為官方沒有可下載的名單 |
+| 評分 | AI 綜合判斷，沒有上限 | 職缺要求的年資明顯高於你、明說不提供你需要的擔保、你在 OPT 但職缺明說不收 OPT、或畢業時間不符時，最高只給 2.5 分，並寫出原因 |
 | 更新 | 來自 career-ops | 來自本專案，更新時不會蓋掉以上改動 |
 
 注意：分數仍然是 AI 的判斷，不同次、不同模型跑出來可能不一樣；2.5 分上限只是避免你根本不符資格的職缺看起來很值得投。

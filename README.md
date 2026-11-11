@@ -11,7 +11,8 @@
 | Title filter | Excludes "Junior", "Intern", "Internship" and "Java " by default, even for a new grad | For an entry-level candidate (under 2 years, or an Entry/Junior/Graduate target), keeps them and adds New Grad, Entry Level, Early Career, Software Engineer I |
 | CV length | Up to 2 pages unless you ask for 1 | One page, enforced, for an entry-level candidate (you can still choose 2) |
 | US visa | H-1B lookup is an opt-in plugin; no US sponsorship phrases | Onboarding asks your work authorization (citizen, green card, F-1 OPT, STEM OPT, H-1B). If you need sponsorship in the US, the visa filter and the H-1B sponsor lookup are on, and US phrases ("must be a U.S. citizen", "will not sponsor", clearance) are filtered |
-| Score | Holistic, no caps | Capped at 2.5/5, with the reason, when the posting asks for clearly more years than you have, refuses sponsorship you need, or has a graduation window that excludes you |
+| OPT / STEM OPT | Nothing specific | For an F-1 student on OPT or STEM OPT, the visa filter also drops postings that turn away F-1, OPT or CPT, or say the employer is not in E-Verify (STEM OPT requires an E-Verify employer). Evaluations remind STEM OPT candidates to look the employer up at [e-verify.gov](https://www.e-verify.gov/e-verify-employer-search), since there is no downloadable list |
+| Score | Holistic, no caps | Capped at 2.5/5, with the reason, when the posting asks for clearly more years than you have, refuses sponsorship you need, turns away F-1/OPT when you are on OPT, or has a graduation window that excludes you |
 | Updates | From career-ops | From this repo, so an update keeps these changes |
 
 The scores are still a model's judgment and can vary between runs and models; the cap only keeps a posting you cannot take from looking like a good bet.

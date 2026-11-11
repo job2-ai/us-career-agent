@@ -96,7 +96,10 @@ An entry-level candidate is one whose `config/profile.yml` `candidate.years_of_e
 |-----|------------|--------------|
 | Years | The JD's stated required minimum is more than 1 year above the candidate's years | `node jd-years.mjs --years {candidate years} --file {jd file}` (or the JD on stdin) prints `"cap": 2.5` exactly when it fires. Use its verdict, not your own reading: a preferred-only, skill-specific or "or equivalent experience" figure never caps |
 | Sponsorship | `location.needs_sponsorship` is true and Block A's work-authorization check is ⛔ No sponsorship (the JD refuses sponsorship, or requires US citizenship, a green card or a security clearance) | Block A's Work-auth tier |
+| OPT / F-1 | `location.visa_status` says F-1 OPT or STEM OPT and the JD turns away F-1, OPT or CPT candidates, or says the employer is not in E-Verify | The JD sentence. A JD that only asks for work authorization without sponsorship falls under the Sponsorship cap |
 | Graduation window | The JD names a graduation window ("graduating between December 2026 and June 2027", "graduated within the last 12 months", "Class of 2027") and the candidate's graduation date from `cv.md` falls outside it | Compare the dates. A missing graduation date in `cv.md` does not cap: say the window needs checking |
+
+For a candidate on **STEM OPT** (or on OPT who will apply for the STEM extension), add one line to Block A's work-authorization check: the employer must be enrolled in E-Verify for a STEM OPT extension (USCIS: a STEM OPT employer "must be enrolled in E-Verify"). There is no downloadable list, so do not guess: tell the candidate to search the employer at https://www.e-verify.gov/e-verify-employer-search , and say so as unverified unless the JD itself states the employer uses E-Verify. This line never caps the score on its own.
 
 When a cap fires:
 - The Global Score is the lower of the holistic score and 2.5. The report header, Machine Summary `score` and tracker record that capped value.

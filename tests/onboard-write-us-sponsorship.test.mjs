@@ -121,3 +121,15 @@ test('the default visa vocabulary drops US refusals and keeps postings that only
     assert.equal(keep(jd), true, jd);
   }
 });
+
+test('OPT and STEM OPT turn on the F-1 phrases in the visa filter; H-1B does not', () => {
+  for (const [workAuth, f1] of [['f1_opt', true], ['stem_opt', true], ['h1b', undefined]]) {
+    const { dir, res, read } = run(withAuth({ work_authorization: workAuth }));
+    try {
+      assert.equal(res.status, 0, describeSpawn(res));
+      const visa = yaml.load(read('portals.yml')).visa_filter;
+      assert.equal(visa.enabled, true, workAuth);
+      assert.equal(visa.f1_opt, f1, workAuth);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  }
+});
