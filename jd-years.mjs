@@ -54,6 +54,9 @@ import {
 } from './browser-extract.mjs';
 import { resolveAtsApi, JD_TEXT_API_ATS, throttleProviderRequest } from './liveness-api.mjs';
 import { fetchJsonWithRetry, makeHttpCtx } from './providers/_http.mjs';
+import { readFileSync } from 'node:fs';
+import { flagValue, validateFlags } from './lib/cli-flags.mjs';
+import { isMainModule } from './lib/is-main-module.mjs';
 
 /**
  * @typedef {Object} YearsMention
@@ -604,4 +607,57 @@ export async function applyExperienceFilter(offers, filter, deps = {}) {
   const dropped = filter.action === 'drop' ? annotated.filter(o => o.years.verdict === 'out') : [];
   const kept = annotated.filter(o => !dropped.includes(o));
   return { kept, dropped };
+}
+
+// ── CLI: the evaluation's years cap ─────────────────────────────────
+// modes/_shared.md "Hard caps": an entry-level candidate's score is capped
+// at 2.5 when the JD clearly states a minimum more than one year above their
+// years. The same verdict the scanner's experience filter uses (stretch 1),
+// so the report and the pipeline row never disagree about a posting.
+
+export const YEARS_SCORE_CAP = 2.5;
+
+const CLI_USAGE = `Usage: node jd-years.mjs --years <N> [--stretch <N>] [--file <jd.txt>]
+
+Reads a JD (from --file, or stdin) and prints JSON: the stated requirement,
+the band verdict (in / out / unknown) and "cap": ${YEARS_SCORE_CAP} when the verdict is out.
+--stretch defaults to 1. Only a clear, required, overall minimum gives "out".`;
+
+/**
+ * @param {string} jd
+ * @param {{years: number, stretchYears?: number}} band
+ */
+export function yearsScoreCap(jd, { years, stretchYears = 1 }) {
+  const req = parseYearsRequirement(jd);
+  const verdict = classifyYears(req, { years, stretchYears });
+  return {
+    status: req.status,
+    min: req.min,
+    display: req.display,
+    confident: req.confident,
+    verdict,
+    cap: verdict === 'out' ? YEARS_SCORE_CAP : null,
+    reason: verdict === 'out'
+      ? `JD requires ${req.display} years; candidate has ${years} (more than ${stretchYears} above)`
+      : null,
+  };
+}
+
+if (isMainModule(import.meta.url)) {
+  const args = process.argv.slice(2);
+  validateFlags(args, ['--years', '--stretch', '--file', '--help', '-h'], CLI_USAGE, { valueFlags: ['--years', '--stretch', '--file'], requireOperand: true });
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(CLI_USAGE);
+  } else {
+    const years = Number(flagValue(args, '--years'));
+    const stretch = Number(flagValue(args, '--stretch') ?? 1);
+    if (flagValue(args, '--years') === undefined || !Number.isFinite(years) || years < 0 || !Number.isFinite(stretch) || stretch < 0) {
+      console.error(CLI_USAGE);
+      process.exitCode = 1;
+    } else {
+      const file = flagValue(args, '--file');
+      const jd = readFileSync(file ?? 0, 'utf8');
+      console.log(JSON.stringify(yearsScoreCap(jd, { years, stretchYears: stretch })));
+    }
+  }
 }

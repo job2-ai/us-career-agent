@@ -88,6 +88,22 @@ The evaluation scores five dimensions, integrated into one global score of 1-5. 
 
 Decide the Global Score once from these dimensions, applying the user's own scoring rules from `modes/_profile.md` and `modes/_custom.md`. The report header, Machine Summary `score`, and application tracker must record that same value. A–H are report sections, not numeric inputs to average; Block B requirement importance and Block G posting legitimacy remain separate from the 1–5 score.
 
+### Hard caps for entry-level candidates
+
+An entry-level candidate is one whose `config/profile.yml` `candidate.years_of_experience` is under 2, or whose archetypes have `level` Entry, Junior or Graduate (the same test onboarding uses). For them a holistic score has hidden ineligible postings at 2.5 to 4.0, so three facts cap the Global Score at **2.5** however strong the rest of the evaluation is. Each needs JD text that states it; an inferred fact never caps.
+
+| Cap | Fires when | How to check |
+|-----|------------|--------------|
+| Years | The JD's stated required minimum is more than 1 year above the candidate's years | `node jd-years.mjs --years {candidate years} --file {jd file}` (or the JD on stdin) prints `"cap": 2.5` exactly when it fires. Use its verdict, not your own reading: a preferred-only, skill-specific or "or equivalent experience" figure never caps |
+| Sponsorship | `location.needs_sponsorship` is true and Block A's work-authorization check is ⛔ No sponsorship (the JD refuses sponsorship, or requires US citizenship, a green card or a security clearance) | Block A's Work-auth tier |
+| Graduation window | The JD names a graduation window ("graduating between December 2026 and June 2027", "graduated within the last 12 months", "Class of 2027") and the candidate's graduation date from `cv.md` falls outside it | Compare the dates. A missing graduation date in `cv.md` does not cap: say the window needs checking |
+
+When a cap fires:
+- The Global Score is the lower of the holistic score and 2.5. The report header, Machine Summary `score` and tracker record that capped value.
+- Say why on its own line directly under the score in the report header: `**Capped at 2.5:** {cap}: {the JD sentence, verbatim} vs {the candidate fact}`. With more than one, list each.
+- Record each one in the Machine Summary as a `hard_stop`.
+- A user rule in `modes/_profile.md` or `modes/_custom.md` can raise or turn off a cap only when it names it ("apply even when the JD asks for 3 years").
+
 **Score interpretation:**
 - 4.5+ → Strong match, recommend applying immediately
 - 4.0-4.4 → Good match, worth applying
